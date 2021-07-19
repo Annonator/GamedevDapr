@@ -2,6 +2,7 @@ using Dapr.Client;
 using GamedevDapr.CloudSave.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,17 +27,23 @@ namespace GamedevDapr.CloudSave.Controllers
 
         /// <summary>
         ///     Saves a provided list of save files through the apropiate repository
+        ///     curl -X POST "http://localhost:3500/v1.0/invoke/testSave/method/CloudSave/SaveGameEntity" -H  "accept: */*" -H  "Content-Type: multipart/form-data" -F "Id=7aa899ac-3224-49be-9b58-25bb7a11c471" -F "Name=test" -F "data=@test.jpg;type=image/jpeg" -v
         /// </summary>
         /// <param name="saveGames">List of Save Games Based on <see cref="GamedevDapr.CloudSave.Entities.SaveGameEntity"/></param>
         /// <returns></returns>
         [HttpPost("SaveGameEntity")]
         public async Task<IActionResult> Upload([FromForm] SaveGameEntity saveGame, [FromServices] DaprClient daprClient, CancellationToken cancellationToken)
         {
+            //TODO: This is stupid, fix after validating
+            var bin = new BinarySaveGameEntity(saveGame);
+
+            await daprClient.SaveStateAsync<BinarySaveGameEntity>(daprStateStoreName, bin.ToString(), bin, cancellationToken: cancellationToken);
+
             var (state, originalETag) = await daprClient.GetStateAndETagAsync<SaveGameEntity>(daprStateStoreName,
                                                              saveGame.ToString(),
                                                              cancellationToken: cancellationToken);
 
-            if (state.Id == null)
+            if (state.Id == Guid.Empty)
             {
                 await daprClient.SaveStateAsync<SaveGameEntity>(daprStateStoreName, saveGame.ToString(), saveGame, cancellationToken: cancellationToken);
             }

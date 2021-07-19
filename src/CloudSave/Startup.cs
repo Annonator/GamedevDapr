@@ -25,6 +25,7 @@ namespace GamedevDapr.CloudSave
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "CloudSave", Version = "v1" });
             });
+            services.AddDaprClient();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -37,7 +38,7 @@ namespace GamedevDapr.CloudSave
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "CloudSave v1"));
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 
